@@ -1,0 +1,402 @@
+{
+  "info": {
+    "name": "Softlend API",
+    "description": "Customer Credit Profile & Loan Offer Management API\n\nBase URL: http://localhost:3000/api/v1",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Customers",
+      "item": [
+        {
+          "name": "Create Customer (Success)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Has id', () => pm.response.json().id);",
+                  "pm.test('Has name', () => pm.response.json().name === 'Ravi Kumar');",
+                  "pm.environment.set('customer_id', pm.response.json().id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ravi Kumar\",\n  \"mobile\": \"9876543210\",\n  \"pan\": \"ABCDE1234F\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/customers",
+              "host": ["{{base_url}}"],
+              "path": ["customers"]
+            }
+          }
+        },
+        {
+          "name": "Create Customer (Duplicate Mobile — 409)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 409', () => pm.response.to.have.status(409));",
+                  "pm.test('Error code', () => pm.response.json().code === 'DUPLICATE_MOBILE');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Duplicate\",\n  \"mobile\": \"9876543210\",\n  \"pan\": \"FGHIJ5678K\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/customers",
+              "host": ["{{base_url}}"],
+              "path": ["customers"]
+            }
+          }
+        },
+        {
+          "name": "Create Customer (Invalid PAN — 400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Error code', () => pm.response.json().code === 'VALIDATION_ERROR');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Invalid PAN\",\n  \"mobile\": \"9876543211\",\n  \"pan\": \"INVALID\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/customers",
+              "host": ["{{base_url}}"],
+              "path": ["customers"]
+            }
+          }
+        },
+        {
+          "name": "Update Credit Score (Success)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Score updated', () => pm.response.json().cibil_score === 720);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cibil_score\": 720\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/customers/{{customer_id}}/credit-score",
+              "host": ["{{base_url}}"],
+              "path": ["customers", "{{customer_id}}", "credit-score"]
+            }
+          }
+        },
+        {
+          "name": "Update Credit Score (Customer Not Found — 404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                  "pm.test('Error code', () => pm.response.json().code === 'CUSTOMER_NOT_FOUND');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cibil_score\": 680\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/customers/99999/credit-score",
+              "host": ["{{base_url}}"],
+              "path": ["customers", "99999", "credit-score"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Credit Gaps",
+      "item": [
+        {
+          "name": "Add Credit Gap (Success)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Has factor', () => pm.response.json().factor === 'Credit utilisation');",
+                  "pm.test('Status is open', () => pm.response.json().status === 'open');",
+                  "pm.environment.set('gap_id', pm.response.json().id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"factor\": \"Credit utilisation\",\n  \"current_value\": \"87%\",\n  \"ideal_value\": \"below 30%\",\n  \"impact\": \"high\",\n  \"estimated_score_gain\": 35,\n  \"action_description\": \"Pay down your HDFC credit card from ₹43,500 to below ₹15,000\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/customers/{{customer_id}}/credit-gaps",
+              "host": ["{{base_url}}"],
+              "path": ["customers", "{{customer_id}}", "credit-gaps"]
+            }
+          }
+        },
+        {
+          "name": "Resolve Credit Gap (Success)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Status resolved', () => pm.response.json().status === 'resolved');",
+                  "pm.test('Has resolved_at', () => pm.response.json().resolved_at);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{base_url}}/credit-gaps/{{gap_id}}/resolve",
+              "host": ["{{base_url}}"],
+              "path": ["credit-gaps", "{{gap_id}}", "resolve"]
+            }
+          }
+        },
+        {
+          "name": "Get Credit Profile (Success)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Has potential_score', () => pm.response.json().potential_score);",
+                  "pm.test('Has gaps array', () => Array.isArray(pm.response.json().gaps));",
+                  "pm.test('Has open_gaps count', () => pm.response.json().open_gaps >= 0);",
+                  "pm.test('Has resolved_gaps count', () => pm.response.json().resolved_gaps >= 0);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/customers/{{customer_id}}/credit-profile",
+              "host": ["{{base_url}}"],
+              "path": ["customers", "{{customer_id}}", "credit-profile"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Offers",
+      "item": [
+        {
+          "name": "Create Offer (Success)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Has lender', () => pm.response.json().lender === 'HDFC Bank');",
+                  "pm.test('Status pending', () => pm.response.json().status === 'pending');",
+                  "pm.environment.set('offer_id', pm.response.json().id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lender\": \"HDFC Bank\",\n  \"amount\": 500000,\n  \"interest_rate\": 10.5,\n  \"tenure_months\": 36,\n  \"min_score_required\": 700\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/customers/{{customer_id}}/offers",
+              "host": ["{{base_url}}"],
+              "path": ["customers", "{{customer_id}}", "offers"]
+            }
+          }
+        },
+        {
+          "name": "List Offers (Success)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns array', () => Array.isArray(pm.response.json()));",
+                  "pm.test('Offers have locked field', () => pm.response.json().forEach(o => o.locked !== undefined));",
+                  "pm.test('Offers have score_gap field', () => pm.response.json().forEach(o => o.score_gap !== undefined));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/customers/{{customer_id}}/offers",
+              "host": ["{{base_url}}"],
+              "path": ["customers", "{{customer_id}}", "offers"]
+            }
+          }
+        },
+        {
+          "name": "List Offers (Filter Locked)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/customers/{{customer_id}}/offers?locked=true",
+              "host": ["{{base_url}}"],
+              "path": ["customers", "{{customer_id}}", "offers"],
+              "query": [{"key": "locked", "value": "true"}]
+            }
+          }
+        },
+        {
+          "name": "Activate Offer (Locked — 422)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 422', () => pm.response.to.have.status(422));",
+                  "pm.test('Error code', () => pm.response.json().code === 'OFFER_LOCKED');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/offers/{{offer_id}}/status",
+              "host": ["{{base_url}}"],
+              "path": ["offers", "{{offer_id}}", "status"]
+            }
+          }
+        },
+        {
+          "name": "Calculate EMI (Success)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Has monthly_emi', () => pm.response.json().monthly_emi > 0);",
+                  "pm.test('Has principal', () => pm.response.json().principal === 500000);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/offers/{{offer_id}}/emi",
+              "host": ["{{base_url}}"],
+              "path": ["offers", "{{offer_id}}", "emi"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Improvement Summary (Bonus)",
+      "item": [
+        {
+          "name": "Get Improvement Summary",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Has points_recovered_so_far', () => pm.response.json().points_recovered_so_far >= 0);",
+                  "pm.test('Has remaining_potential_gain', () => pm.response.json().remaining_potential_gain >= 0);",
+                  "pm.test('Has projected_score', () => pm.response.json().projected_score);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/customers/{{customer_id}}/improvement-summary",
+              "host": ["{{base_url}}"],
+              "path": ["customers", "{{customer_id}}", "improvement-summary"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000/api/v1",
+      "type": "string"
+    }
+  ]
+}

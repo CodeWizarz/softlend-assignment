@@ -1,0 +1,28 @@
+{
+  "name": "softlend-backend",
+  "version": "1.0.0",
+  "description": "Softlend Customer Credit Profile & Loan Offer Management API",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "node --watch src/app.js",
+    "migrate": "node src/config/migrate.js",
+    "test": "node --experimental-test-coverage tests/run.js",
+    "lint": "npx eslint src/"
+  },
+  "keywords": ["fintech", "credit-score", "loan-management", "softlend"],
+  "license": "MIT",
+  "dependencies": {
+    "better-sqlite3": "^11.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.0",
+    "express": "^4.21.0",
+    "express-validator": "^7.0.0",
+    "helmet": "^7.1.0",
+    "morgan": "^1.10.0",
+    "winston": "^3.12.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.56.0"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "customer_id": "C011",
+  "age": 19,
+  "cibil_score": 500,
+  "monthly_income": 20000,
+  "existing_emis": 15000,
+  "foir": 0.75,
+  "employment_type": "unemployed",
+  "written_off_accounts": 2,
+  "requested_amount": 500000
+}

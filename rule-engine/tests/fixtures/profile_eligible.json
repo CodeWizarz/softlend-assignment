@@ -1,0 +1,11 @@
+{
+  "customer_id": "C010",
+  "age": 30,
+  "cibil_score": 720,
+  "monthly_income": 80000,
+  "existing_emis": 15000,
+  "foir": 0.1875,
+  "employment_type": "salaried",
+  "written_off_accounts": 0,
+  "requested_amount": 400000
+}
