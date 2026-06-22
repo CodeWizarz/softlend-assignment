@@ -12,3 +12,6 @@ build/
 .DS_Store
 coverage/
 .nyc_output/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
