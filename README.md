@@ -1,7 +1,7 @@
 # Softlend — Backend & Rule Engine
 
-[![CI](https://img.shields.io/github/actions/workflow/status/YOUR_USER/softlend-assignment/ci.yml?branch=main&label=CI&logo=github)](https://github.com/YOUR_USER/softlend-assignment/actions)
-[![Coverage](https://img.shields.io/badge/coverage-89%25-brightgreen?logo=codecov)](https://github.com/YOUR_USER/softlend-assignment)
+[![CI](https://img.shields.io/github/actions/workflow/status/CodeWizarz/softlend-assignment/ci.yml?branch=main&label=CI&logo=github)](https://github.com/CodeWizarz/softlend-assignment/actions)
+[![Coverage](https://img.shields.io/badge/coverage-89%25-brightgreen?logo=codecov)](https://github.com/CodeWizarz/softlend-assignment)
 [![Node](https://img.shields.io/badge/Node-20.x-339933?logo=node.js)](https://nodejs.org)
 [![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109-009688?logo=fastapi)](https://fastapi.tiangolo.com)
