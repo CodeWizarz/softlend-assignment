@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  NODE_VERSION: "20"
+  PYTHON_VERSION: "3.12"
+
+jobs:
+  backend:
+    name: Backend — Lint & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: backend
+
+      - name: Run lint
+        run: npm run lint
+        working-directory: backend
+        continue-on-error: true
+
+      - name: Run tests
+        run: npm test
+        working-directory: backend
+
+  rule-engine:
+    name: Rule Engine — Lint & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: rule-engine/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+        working-directory: rule-engine
+
+      - name: Run tests
+        run: python -m pytest tests/ -v
+        working-directory: rule-engine
+
+      - name: Test CLI — Gap Analysis
+        run: python src/main.py --mode gap_analysis --input tests/fixtures/report_all_gaps.json
+        working-directory: rule-engine
+
+      - name: Test CLI — Eligibility
+        run: python src/main.py --mode eligibility --input tests/fixtures/profile_eligible.json
+        working-directory: rule-engine
+
+  docker:
+    name: Docker — Build Smoke Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker images
+        run: docker compose build

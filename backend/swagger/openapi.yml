@@ -1,0 +1,504 @@
+openapi: "3.1.0"
+info:
+  title: Softlend API
+  version: "1.0.0"
+  description: |
+    Customer Credit Profile & Loan Offer Management API.
+
+    Softlend is a fintech platform that connects borrowers with lenders and actively
+    helps customers improve their credit scores. This API powers the core backend
+    layer — customer management, credit gap tracking, and score-gated loan offers.
+  contact:
+    name: Softlend Engineering
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Local development
+
+paths:
+  /customers:
+    post:
+      summary: Create a customer
+      tags: [Customers]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCustomerRequest"
+      responses:
+        "201":
+          description: Customer created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerCreated"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "409":
+          description: Mobile number already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /customers/{id}/credit-score:
+    post:
+      summary: Update credit score (simulate bureau fetch)
+      tags: [Customers]
+      parameters:
+        - $ref: "#/components/parameters/CustomerId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [cibil_score]
+              properties:
+                cibil_score:
+                  type: integer
+                  minimum: 300
+                  maximum: 900
+                  example: 720
+      responses:
+        "200":
+          description: Score updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /customers/{id}/credit-gaps:
+    post:
+      summary: Add a credit gap / improvement action
+      tags: [Credit Gaps]
+      parameters:
+        - $ref: "#/components/parameters/CustomerId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddGapRequest"
+      responses:
+        "201":
+          description: Gap created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GapCreated"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /customers/{id}/credit-profile:
+    get:
+      summary: Get full credit profile with potential score
+      tags: [Customers]
+      parameters:
+        - $ref: "#/components/parameters/CustomerId"
+      responses:
+        "200":
+          description: Credit profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreditProfile"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /customers/{id}/improvement-summary:
+    get:
+      summary: Get resolved vs pending gaps summary
+      tags: [Customers]
+      parameters:
+        - $ref: "#/components/parameters/CustomerId"
+      responses:
+        "200":
+          description: Improvement summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImprovementSummary"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /customers/{id}/offers:
+    post:
+      summary: Create an offer for a customer
+      tags: [Offers]
+      parameters:
+        - $ref: "#/components/parameters/CustomerId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOfferRequest"
+      responses:
+        "201":
+          description: Offer created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OfferCreated"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    get:
+      summary: List offers with score-gating
+      tags: [Offers]
+      parameters:
+        - $ref: "#/components/parameters/CustomerId"
+        - name: locked
+          in: query
+          schema:
+            type: string
+            enum: [true, false]
+          description: Filter by locked status
+      responses:
+        "200":
+          description: List of offers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OfferWithGating"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /offers/{id}/status:
+    patch:
+      summary: Transition offer status
+      tags: [Offers]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [active, disbursed]
+      responses:
+        "200":
+          description: Status updated
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+
+  /offers/{id}/emi:
+    get:
+      summary: Calculate EMI for an offer
+      tags: [Offers]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: EMI calculated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EMIResult"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /credit-gaps/{id}/resolve:
+    patch:
+      summary: Mark a credit gap as resolved
+      tags: [Credit Gaps]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Gap resolved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GapResolved"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /health:
+    get:
+      summary: Health check
+      tags: [System]
+      responses:
+        "200":
+          description: Service is healthy
+
+components:
+  parameters:
+    CustomerId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+
+  schemas:
+    CreateCustomerRequest:
+      type: object
+      required: [name, mobile, pan]
+      properties:
+        name:
+          type: string
+          example: "Ravi Kumar"
+        mobile:
+          type: string
+          pattern: "^\\d{10}$"
+          example: "9876543210"
+        pan:
+          type: string
+          pattern: "^[A-Z]{5}[0-9]{4}[A-Z]{1}$"
+          example: "ABCDE1234F"
+
+    CustomerCreated:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        mobile:
+          type: string
+
+    Customer:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        mobile:
+          type: string
+        pan:
+          type: string
+        cibil_score:
+          type: integer
+          nullable: true
+        score_fetched_at:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+
+    AddGapRequest:
+      type: object
+      required: [factor, current_value, ideal_value, impact, estimated_score_gain, action_description]
+      properties:
+        factor:
+          type: string
+        current_value:
+          type: string
+        ideal_value:
+          type: string
+        impact:
+          type: string
+          enum: [high, medium, low]
+        estimated_score_gain:
+          type: integer
+        action_description:
+          type: string
+
+    GapCreated:
+      type: object
+      properties:
+        id:
+          type: integer
+        factor:
+          type: string
+        status:
+          type: string
+
+    CreditProfile:
+      type: object
+      properties:
+        customer_id:
+          type: integer
+        name:
+          type: string
+        cibil_score:
+          type: integer
+        score_fetched_at:
+          type: string
+        potential_score:
+          type: integer
+        gaps:
+          type: array
+          items:
+            $ref: "#/components/schemas/GapItem"
+        open_gaps:
+          type: integer
+        resolved_gaps:
+          type: integer
+
+    GapItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        factor:
+          type: string
+        impact:
+          type: string
+        estimated_score_gain:
+          type: integer
+        action_description:
+          type: string
+        status:
+          type: string
+
+    ImprovementSummary:
+      type: object
+      properties:
+        customer_id:
+          type: integer
+        current_score:
+          type: integer
+        total_gaps:
+          type: integer
+        resolved_gaps:
+          type: integer
+        open_gaps:
+          type: integer
+        points_recovered_so_far:
+          type: integer
+        remaining_potential_gain:
+          type: integer
+        projected_score:
+          type: integer
+
+    CreateOfferRequest:
+      type: object
+      required: [lender, amount, interest_rate, tenure_months]
+      properties:
+        lender:
+          type: string
+        amount:
+          type: number
+          example: 500000
+        interest_rate:
+          type: number
+          example: 10.5
+        tenure_months:
+          type: integer
+          example: 36
+        min_score_required:
+          type: integer
+          default: 650
+
+    OfferCreated:
+      type: object
+      properties:
+        id:
+          type: integer
+        lender:
+          type: string
+        amount:
+          type: number
+        interest_rate:
+          type: number
+        tenure_months:
+          type: integer
+        min_score_required:
+          type: integer
+        status:
+          type: string
+
+    OfferWithGating:
+      type: object
+      properties:
+        id:
+          type: integer
+        lender:
+          type: string
+        amount:
+          type: number
+        interest_rate:
+          type: number
+        tenure_months:
+          type: integer
+        min_score_required:
+          type: integer
+        status:
+          type: string
+        locked:
+          type: boolean
+        score_gap:
+          type: integer
+
+    EMIResult:
+      type: object
+      properties:
+        offer_id:
+          type: integer
+        principal:
+          type: number
+        interest_rate:
+          type: number
+        tenure_months:
+          type: integer
+        monthly_emi:
+          type: number
+
+    GapResolved:
+      type: object
+      properties:
+        id:
+          type: integer
+        factor:
+          type: string
+        status:
+          type: string
+        resolved_at:
+          type: string
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        code:
+          type: string
+
+  responses:
+    ValidationError:
+      description: Validation failed
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Unprocessable:
+      description: Unprocessable entity
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"

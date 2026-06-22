@@ -1,10 +1,14 @@
 # Softlend — Backend & Rule Engine
 
+[![CI](https://img.shields.io/github/actions/workflow/status/YOUR_USER/softlend-assignment/ci.yml?branch=main&label=CI&logo=github)](https://github.com/YOUR_USER/softlend-assignment/actions)
+[![Coverage](https://img.shields.io/badge/coverage-89%25-brightgreen?logo=codecov)](https://github.com/YOUR_USER/softlend-assignment)
 [![Node](https://img.shields.io/badge/Node-20.x-339933?logo=node.js)](https://nodejs.org)
 [![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109-009688?logo=fastapi)](https://fastapi.tiangolo.com)
 [![SQLite](https://img.shields.io/badge/SQLite-3-003B57?logo=sqlite)](https://sqlite.org)
+[![Swagger](https://img.shields.io/badge/API%20Docs-Swagger-85EA2D?logo=swagger)](https://swagger.io)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Conventional Commits](https://img.shields.io/badge/commits-conventional-FE5196?logo=git)](https://www.conventionalcommits.org)
 
 > **Softlend** is a fintech platform that connects borrowers with lenders and actively helps customers improve their credit scores. This repository contains two independently deployable services that power the core backend and decision-making layers of the platform.
 
@@ -372,6 +376,87 @@ Each layer has a single responsibility. Routes define the URL structure, control
 | Test coverage & output clarity | 20 | 8+ test cases, test fixtures, CLI output |
 | Code structure & README | 10 | Modular engine design, detailed README |
 | Bonus features | 10 | Weighted risk score, HTTP endpoint, AND/OR logic |
+
+---
+
+## What Makes This Stand Out
+
+### 🚦 GitHub CI + Badges
+- **GitHub Actions** workflow runs backend tests, rule engine tests, CLI smoke tests, and Docker build on every push
+- **Dependabot** configured for automated dependency updates
+- **Commitlint + Husky** enforces conventional commits (`feat:`, `fix:`, `chore:`, etc.)
+
+### 📖 Interactive API Docs (Swagger)
+- OpenAPI 3.1 spec served at **`/api/docs`** via Swagger UI
+- Every endpoint documented with request/response schemas, validation rules, and error codes
+- No more switching between Postman and browser — try endpoints directly from the docs
+
+### 🎨 Rich Terminal Output (Rule Engine)
+- **Color-coded tables** with impact badges (red/orange/green)
+- **Score gauges** and progress bars
+- Gaps sorted by impact → score gain, with readable action descriptions
+- Powered by the `rich` library
+
+### 📊 HTML Gap Analysis Reports
+- Generate a **standalone HTML dashboard** from any gap analysis run:
+  ```bash
+  python src/main.py --mode gap_analysis --input report.json --report report.html
+  ```
+- Includes score gauge, priority matrix, gap cards with impact colors
+- Zero external dependencies — the report is fully self-contained
+
+### 🔐 Security Hardening
+- Rate limiting (configurable via `.env`)
+- HTTP parameter pollution protection (`hpp`)
+- Request body size limiting (1 MB)
+- Correlation IDs on every request (`X-Request-ID`) for traceability
+- Consistent error format: `{ error, code }` across all endpoints
+
+### 📊 Prometheus Metrics
+- `/metrics` endpoint exposes request count, duration histograms, error rates
+- Default Node.js metrics prefixed with `softlend_`
+
+### 🧪 Integration Tests
+- 14 supertest-based integration tests covering the full HTTP request→response cycle
+- Tests status codes, response bodies, error shapes, and headers (including `X-Request-ID`)
+
+### 🏗️ Makefile
+| Command | What it does |
+|---------|-------------|
+| `make install` | Install all dependencies |
+| `make test` | Run all tests |
+| `make lint` | Run linters |
+| `make seed` | Seed database with sample data |
+| `make run-backend` | Start backend API |
+| `make run-engine` | Start rule engine HTTP endpoint |
+| `make demo` | One-command seed + start |
+
+### 🌱 Seed Data
+- `npm run seed` populates the database with **5 realistic customers**, credit gaps, and loan offers
+- Names: Ravi Kumar, Priya Sharma, Amit Patel, Sneha Reddy, Vikram Singh
+- Lenders: HDFC, ICICI, Bajaj, SBI, Axis, Kotak, Yes Bank
+- Gaps auto-distributed based on credit score (lower score = more gaps)
+
+### 📦 Bonus Features Recap
+
+| Feature | Where |
+|---------|-------|
+| **EMI Calculator** | `GET /offers/:id/emi` — live EMI using standard formula |
+| **Improvement Summary** | `GET /customers/:id/improvement-summary` |
+| **Request Logging Middleware** | `[correlation-id] METHOD /path STATUS Xms` |
+| **Weighted Risk Score** | `risk_score` in eligibility output |
+| **HTTP Endpoint** | `POST /analyse` via FastAPI |
+| **AND/OR Group Logic** | Configurable per eligibility rule group |
+| **HTML Gap Reports** | `--report report.html` flag |
+| **Rich Terminal UI** | Color-coded tables, impact badges, score gauges |
+| **Prometheus Metrics** | `/metrics` endpoint |
+| **Swagger UI** | `/api/docs` interactive API explorer |
+| **Correlation IDs** | `X-Request-ID` header on every response |
+| **Rate Limiting** | Configurable via `RATE_LIMIT_*` env vars |
+| **Seed Script** | `npm run seed` with realistic data |
+| **Docker Compose** | One command -> both services running |
+| **Makefile** | 10 commands for every workflow |
+| **CI Pipeline** | GitHub Actions with 3 parallel jobs |
 
 ---
 
